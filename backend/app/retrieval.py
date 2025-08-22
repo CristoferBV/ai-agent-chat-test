@@ -6,16 +6,17 @@ from langchain.docstore.document import Document
 
 class Retriever:
     """
-    Carga el índice FAISS y expone un método para obtener contexto + fuentes.
-    El índice se genera con ingest/build_vectorstore.py y se commitea.
+    Carga el índice FAISS (generado por ingest/build_vectorstore.py)
+    y expone get_context() para recuperar contexto + fuentes.
     """
     def __init__(self, faiss_subpath: str | None = None):
-        base = Path(__file__).resolve().parents[1]
+        base = Path(__file__).resolve().parents[1]  # .../backend
         faiss_dir = Path(faiss_subpath) if faiss_subpath else base / "data" / "vectorstore" / "faiss"
         if not faiss_dir.exists():
             raise RuntimeError(f"No se encontró el índice FAISS en: {faiss_dir}")
 
         self.embed = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+        # allow_dangerous_deserialization es requerido por FAISS.load_local
         self.vs: FAISS = FAISS.load_local(str(faiss_dir), self.embed, allow_dangerous_deserialization=True)
 
     def get_context(self, question: str, k: int = 4) -> Tuple[str, List[str], list[Document]]:
