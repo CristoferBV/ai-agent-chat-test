@@ -1,6 +1,14 @@
+"""
+Script de ingesta para construir FAISS:
+- Extrae texto limpio de https://www.puntablanca.ai/*
+- Añade contenido público de LinkedIn pegado en backend/data/sources/linkedin.md
+- Genera índice FAISS persistido en backend/data/vectorstore/faiss
+
+Uso:
+  python backend/ingest/build_vectorstore.py
+"""
 from __future__ import annotations
 from pathlib import Path
-import os
 import requests
 import trafilatura
 from langchain.docstore.document import Document
@@ -15,23 +23,18 @@ VECTOR_DIR = DATA_DIR / "vectorstore" / "faiss"
 SOURCES_DIR.mkdir(parents=True, exist_ok=True)
 VECTOR_DIR.parent.mkdir(parents=True, exist_ok=True)
 
-# --- Environment Configuration ---
-# CSV of URLs, by default only the home (secure)
-urls_env = os.getenv("SCRAPE_URLS", "https://www.puntablanca.ai/")
-SEED_URLS = [u.strip() for u in urls_env.split(",") if u.strip()]
-
-# If SKIP_SCRAPE=1, it does not make requests; only uses local files (linkedin.md)
-SKIP_SCRAPE = os.getenv("SKIP_SCRAPE", "0") == "1"
+SEED_URLS = [
+    "https://www.puntablanca.ai/",
+    "https://www.puntablanca.ai/services",
+]
 
 LOCAL_MARKDOWNS = [
-    SOURCES_DIR / "linkedin.md",  # place public content here
+    SOURCES_DIR / "linkedin.md",  
 ]
 
 UA = {"User-Agent": "Mozilla/5.0"}
 
 def fetch_clean(url: str) -> str:
-    if SKIP_SCRAPE:
-        return ""
     try:
         r = requests.get(url, timeout=25, headers=UA)
         r.raise_for_status()
@@ -42,19 +45,16 @@ def fetch_clean(url: str) -> str:
 
 def load_docs() -> list[Document]:
     docs: list[Document] = []
-    # Web
     for url in SEED_URLS:
         text = fetch_clean(url)
         if text:
             docs.append(Document(page_content=text, metadata={"source": url}))
-    # Local (LinkedIn public copied)
     for md in LOCAL_MARKDOWNS:
         if md.exists():
-            txt = md.read_text(encoding="utf-8").strip()
-            if txt:
-                docs.append(Document(page_content=txt, metadata={"source": f"file://{md.name}"}))
+            docs.append(Document(page_content=md.read_text(encoding="utf-8"),
+                                 metadata={"source": f"file://{md.name}"}))
     if not docs:
-        raise RuntimeError("No se cargaron documentos. Revisa SKIP_SCRAPE/URLs y que linkedin.md tenga texto.")
+        raise RuntimeError("No se cargaron documentos. Revisa URLs y linkedin.md")
     return docs
 
 def chunk_docs(docs: list[Document],
@@ -71,7 +71,7 @@ def build_faiss(docs: list[Document]) -> None:
     embed = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     vs = FAISS.from_documents(docs, embed)
     vs.save_local(str(VECTOR_DIR))
-    print(f"Vectorstore guardado en {VECTOR_DIR}")
+    print(f"✔ Vectorstore guardado en {VECTOR_DIR}")
 
 if __name__ == "__main__":
     docs = load_docs()
