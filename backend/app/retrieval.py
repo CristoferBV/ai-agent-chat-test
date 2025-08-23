@@ -15,7 +15,7 @@ class Retriever:
         if not faiss_dir.exists():
             raise RuntimeError(f"No se encontró el índice FAISS en: {faiss_dir}")
 
-        self.embed = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+        self.embed = HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
         # allow_dangerous_deserialization es requerido por FAISS.load_local
         self.vs: FAISS = FAISS.load_local(str(faiss_dir), self.embed, allow_dangerous_deserialization=True)
 
