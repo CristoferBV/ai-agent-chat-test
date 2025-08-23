@@ -2,7 +2,7 @@ import os, json
 import google.generativeai as genai
 
 MODEL_ENV = "GEMINI_MODEL"
-DEFAULT_MODEL = "gemini-1.5-flash"
+DEFAULT_MODEL = "gemini-2.0-flash"
 
 def init_gemini():
     api_key = os.getenv("GEMINI_API_KEY")
