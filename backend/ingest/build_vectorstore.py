@@ -68,7 +68,7 @@ def chunk_docs(docs: list[Document],
     return out
 
 def build_faiss(docs: list[Document]) -> None:
-    embed = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    embed = HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
     vs = FAISS.from_documents(docs, embed)
     vs.save_local(str(VECTOR_DIR))
     print(f"✔ Vectorstore guardado en {VECTOR_DIR}")
