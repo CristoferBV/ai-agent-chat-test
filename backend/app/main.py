@@ -9,6 +9,9 @@ from .graph import build_graph
 from dotenv import load_dotenv
 from pathlib import Path
 
+import logging
+logging.basicConfig(level=logging.INFO)
+
 for p in [
     Path(__file__).resolve().parents[1] / ".env",  # backend/.env
     Path(__file__).resolve().parents[2] / ".env",  # repo/.env (opcional)
