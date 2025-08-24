@@ -8,7 +8,6 @@ from .retrieval import Retriever
 from .generation import init_gemini
 from .graph import build_graph
 
-# --- Cargar .env (python-dotenv) ---
 from dotenv import load_dotenv
 from pathlib import Path
 
@@ -16,9 +15,9 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 for p in [
-    Path(__file__).resolve().parents[1] / ".env",  # backend/.env
-    Path(__file__).resolve().parents[2] / ".env",  # repo/.env (opcional)
-    Path.cwd() / ".env",                           # cwd/.env
+    Path(__file__).resolve().parents[1] / ".env",
+    Path(__file__).resolve().parents[2] / ".env",
+    Path.cwd() / ".env",
 ]:
     if p.exists():
         load_dotenv(p, override=False)
@@ -31,7 +30,7 @@ app.add_middleware(
     allow_methods=["*"], allow_headers=["*"],
 )
 
-# Inicializa recursos al arrancar
+# Initialize resources at startup
 retriever = Retriever()
 gemini = init_gemini()
 graph = build_graph(retriever, gemini)
@@ -45,15 +44,15 @@ def ask(payload: AskRequest):
     try:
         out = graph.invoke({"question": payload.question})
 
-        # 🔎 Debug opcional
+        # Optional Debug
         print(">>> graph output:", out)
 
-        # Asegura el shape correcto
+        # Ensure correct shape
         result = out
         if isinstance(out, dict) and "result" in out and isinstance(out["result"], dict):
             result = out["result"]
 
-        # Otro caso que a veces ocurre: lista con un único estado final
+        # Another case that sometimes occurs: list with a single final state
         if isinstance(result, list) and result and isinstance(result[-1], dict):
             result = result[-1]
 

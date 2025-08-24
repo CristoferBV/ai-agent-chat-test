@@ -3,9 +3,9 @@ import os, json
 import google.generativeai as genai
 
 MODEL_ENV = "GEMINI_MODEL"
-DEFAULT_MODEL = "gemini-2.0-flash"  # usa este por costo/latencia; cambia si quieres
+DEFAULT_MODEL = "gemini-2.0-flash"
 
-# Prompt del sistema (instrucciones globales)
+# System Prompt (Global Instructions)
 SYSTEM_PROMPT = (
     "Eres un asistente que responde únicamente con la información del 'Contexto'. "
     "Si no hay evidencia suficiente, responde: "
@@ -21,13 +21,12 @@ def init_gemini():
         raise RuntimeError("GEMINI_API_KEY no está configurada")
     genai.configure(api_key=api_key)
     model_name = (os.getenv(MODEL_ENV) or DEFAULT_MODEL).strip()
-    # En Gemini el 'system' va como system_instruction, no como rol dentro del chat
+    # In Gemini the 'system' goes as system_instruction, not as a role within the chat
     return genai.GenerativeModel(model_name, system_instruction=SYSTEM_PROMPT)
 
 log = logging.getLogger("gen")
 
 def generate_answer(model, question: str, context: str, sources: list[str]) -> dict:
-    # Un solo prompt de usuario; nada de roles 'system'
     user_prompt = f"""
 Pregunta: {question}
 
@@ -40,9 +39,9 @@ Responde SOLO con JSON válido con shape:
 {{"answer": "texto", "sources": ["url1","url2"], "confidence": 0.8}}
 """
 
-    # Log de diagnóstico
+    # Diagnostic log
     try:
-        log.info("🔎 len(context)=%s chars, sources=%s", len(context or ""), sources)
+        log.info("len(context)=%s chars, sources=%s", len(context or ""), sources)
     except Exception:
         pass
 
@@ -55,10 +54,10 @@ Responde SOLO con JSON válido con shape:
         },
     )
 
-    # Intento de parseo a JSON
+    # Attempt to parse to JSON
     raw = (getattr(resp, "text", "") or "").strip()
     try:
-        log.info("📝 raw from Gemini (first 300): %r", raw[:300])
+        log.info("raw from Gemini (first 300): %r", raw[:300])
     except Exception:
         pass
 
@@ -69,11 +68,11 @@ Responde SOLO con JSON válido con shape:
         except Exception:
             data = {}
 
-    # Fallback si no llegó JSON válido con 'answer'
+    # Fallback if no valid JSON arrived with 'answer'
     if not data or "answer" not in data:
         synth = ""
         if context:
-            # Respuesta extractiva simple: primeros ~700 chars del contexto
+            # Simple extractive response: first ~700 chars of context
             synth = context.strip().replace("\n\n", "\n")[:700]
         if not synth:
             synth = "No hay información suficiente en la base de conocimiento."
@@ -83,7 +82,7 @@ Responde SOLO con JSON válido con shape:
             "confidence": 0.4 if synth else 0.1,
         }
 
-    # Normalización si vino JSON válido
+    # Normalization if valid JSON came
     answer = (data.get("answer") or "").strip()
     srcs = data.get("sources") or list(sources or [])
     try:
