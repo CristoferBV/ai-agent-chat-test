@@ -1,0 +1,38 @@
+# ===== Python / FastAPI =====
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+*.pytest_cache/
+*.mypy_cache/
+.venv/
+venv/
+
+# ===== Environment/secrets (in any folder) =====
+.env
+**/.env
+*.env
+
+# Logs / temporary
+*.log
+*.tmp
+*.temp
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Build / dist
+build/
+dist/
+.eggs/
+
+# ===== Project Data =====
+# Ignore 'data' by default, but allow these two folders
+backend/data/*
+!backend/data/sources/
+!backend/data/sources/**
+!backend/data/vectorstore/
+!backend/data/vectorstore/**
