@@ -1,3 +1,6 @@
+import logging
+logging.basicConfig(level=logging.INFO)
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from .schemas import AskRequest, AskResponse
@@ -40,10 +43,25 @@ def healthz():
 @app.post("/api/ask", response_model=AskResponse, tags=["rag"])
 def ask(payload: AskRequest):
     try:
-        result = graph.invoke({"question": payload.question})
+        out = graph.invoke({"question": payload.question})
+
+        # 🔎 Debug opcional
+        print(">>> graph output:", out)
+
+        # Asegura el shape correcto
+        result = out
+        if isinstance(out, dict) and "result" in out and isinstance(out["result"], dict):
+            result = out["result"]
+
+        # Otro caso que a veces ocurre: lista con un único estado final
+        if isinstance(result, list) and result and isinstance(result[-1], dict):
+            result = result[-1]
+
         answer = str(result.get("answer", "")).strip()
         sources = list(result.get("sources", []))
         confidence = float(result.get("confidence", 0.5))
+
         return AskResponse(answer=answer, sources=sources, confidence=confidence)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+

@@ -4,6 +4,7 @@ uvicorn[standard]==0.30.0
 langchain==0.2.6
 langgraph==0.2.19
 langchain-community==0.2.6
+langchain-huggingface==0.1.0
 
 faiss-cpu==1.8.0.post1
 sentence-transformers==2.7.0

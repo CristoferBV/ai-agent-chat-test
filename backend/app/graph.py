@@ -21,6 +21,7 @@ def build_graph(retriever, gemini_model):
     def generation_node(state: GraphState):
         from .generation import generate_answer
         result = generate_answer(gemini_model, state["question"], state["context"], state["sources"])
+        print(">>> generation_node result:", result)  # debug
         return {"result": result}
 
     def output_node(state: GraphState):
