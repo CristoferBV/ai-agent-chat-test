@@ -1,40 +1,58 @@
+import warnings
 import logging
-logging.basicConfig(level=logging.INFO)
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import ORJSONResponse
+
 from .schemas import AskRequest, AskResponse
 from .retrieval import Retriever
 from .generation import init_gemini
 from .graph import build_graph
 
 from dotenv import load_dotenv
-from pathlib import Path
 
-import logging
-logging.basicConfig(level=logging.INFO)
-
+# ---------- .env ----------
 for p in [
-    Path(__file__).resolve().parents[1] / ".env",
-    Path(__file__).resolve().parents[2] / ".env",
-    Path.cwd() / ".env",
+    Path(__file__).resolve().parents[1] / ".env",  # backend/.env
+    Path(__file__).resolve().parents[2] / ".env",  # repo/.env
+    Path.cwd() / ".env",                           # cwd/.env
 ]:
     if p.exists():
         load_dotenv(p, override=False)
 
-app = FastAPI(title="Punta Blanca RAG Agent")
+# ---------- Logging / Warnings ----------
+logging.getLogger("gen").setLevel(logging.WARNING)  # nuestro logger de generation.py
+logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
+logging.getLogger("faiss").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+logging.getLogger("uvicorn.access").setLevel(logging.WARNING)  # quita líneas de access log
+
+# Mute deprecations from LangChain and similar
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+# ---------- FastAPI ----------
+# ORJSONResponse -> returns UTF-8 without escaping accents/ñ
+app = FastAPI(
+    title="Punta Blanca RAG Agent",
+    default_response_class=ORJSONResponse,
+)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], allow_credentials=False,
-    allow_methods=["*"], allow_headers=["*"],
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# Initialize resources at startup
+# ---------- Resources ----------
 retriever = Retriever()
 gemini = init_gemini()
 graph = build_graph(retriever, gemini)
 
+# ---------- Endpoints ----------
 @app.get("/healthz", tags=["health"])
 def healthz():
     return {"status": "ok"}
@@ -44,15 +62,10 @@ def ask(payload: AskRequest):
     try:
         out = graph.invoke({"question": payload.question})
 
-        # Optional Debug
-        print(">>> graph output:", out)
-
-        # Ensure correct shape
+        # Normalize structure
         result = out
         if isinstance(out, dict) and "result" in out and isinstance(out["result"], dict):
             result = out["result"]
-
-        # Another case that sometimes occurs: list with a single final state
         if isinstance(result, list) and result and isinstance(result[-1], dict):
             result = result[-1]
 
@@ -60,7 +73,9 @@ def ask(payload: AskRequest):
         sources = list(result.get("sources", []))
         confidence = float(result.get("confidence", 0.5))
 
-        return AskResponse(answer=answer, sources=sources, confidence=confidence)
+        return ORJSONResponse(
+            content={"answer": answer, "sources": sources, "confidence": confidence}
+        )
+
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-

@@ -1,4 +1,4 @@
-import logging
+
 import os, json
 import google.generativeai as genai
 
@@ -24,8 +24,6 @@ def init_gemini():
     # In Gemini the 'system' goes as system_instruction, not as a role within the chat
     return genai.GenerativeModel(model_name, system_instruction=SYSTEM_PROMPT)
 
-log = logging.getLogger("gen")
-
 def generate_answer(model, question: str, context: str, sources: list[str]) -> dict:
     user_prompt = f"""
 Pregunta: {question}
@@ -39,12 +37,6 @@ Responde SOLO con JSON válido con shape:
 {{"answer": "texto", "sources": ["url1","url2"], "confidence": 0.8}}
 """
 
-    # Diagnostic log
-    try:
-        log.info("len(context)=%s chars, sources=%s", len(context or ""), sources)
-    except Exception:
-        pass
-
     resp = model.generate_content(
         user_prompt,
         generation_config={
@@ -56,11 +48,6 @@ Responde SOLO con JSON válido con shape:
 
     # Attempt to parse to JSON
     raw = (getattr(resp, "text", "") or "").strip()
-    try:
-        log.info("raw from Gemini (first 300): %r", raw[:300])
-    except Exception:
-        pass
-
     data = {}
     if raw:
         try:

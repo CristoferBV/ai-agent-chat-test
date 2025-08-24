@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Tuple, List
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.docstore.document import Document
 

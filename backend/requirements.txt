@@ -1,15 +1,29 @@
 fastapi==0.111.0
 uvicorn[standard]==0.30.0
 
-langchain==0.2.6
+# LangChain stack
+langchain==0.3.1
+langchain-core==0.3.8
+langchain-community==0.3.1
+langchain-text-splitters==0.3.0
+
+# LangGraph
 langgraph==0.2.19
-langchain-community==0.2.6
+langgraph-checkpoint==1.0.12
+
+# Embeddings via new package
 langchain-huggingface==0.1.0
 
+# Vector store and NLP
 faiss-cpu==1.8.0.post1
 sentence-transformers==2.7.0
 
+# Ingest / scraping
 trafilatura==1.7.0
-google-generativeai==0.7.2
-python-dotenv==1.0.1
 requests==2.32.3
+
+# LLM Gemini
+google-generativeai==0.7.2
+
+# Utilities
+python-dotenv==1.0.1

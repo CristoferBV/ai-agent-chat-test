@@ -126,13 +126,6 @@ gcloud builds submit --tag gcr.io/<PROJECT_ID>/ai-agent
 gcloud run deploy ai-agent   --image gcr.io/<PROJECT_ID>/ai-agent   --platform managed   --region us-central1   --allow-unauthenticated
 ```
 
-**Ejemplo de entrega**
-
-```
-URL: https://ai-agent-xxxxxxxx-uc.a.run.app
-Repo: https://github.com/usuario/ai-agent-test
-```
-
 ---
 
 ## 👨‍💻 Autor
