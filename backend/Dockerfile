@@ -28,13 +28,10 @@ COPY backend /app
 ENV TRANSFORMERS_CACHE=/app/.cache/huggingface \
     HF_HOME=/app/.cache/huggingface
 
-# 2) Download the sentence-transformers model during the build
-RUN python - <<'PY'
-from sentence_transformers import SentenceTransformer
-SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')
-PY
-
+# 2) Download the sentence-transformers model during the build (sin heredoc)
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')"
 # =====================================================
+
 
 # Port (Cloud Run uses $PORT; default 8080 is fine)
 ENV PORT=8080
