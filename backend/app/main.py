@@ -5,6 +5,7 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 
 from .schemas import AskRequest, AskResponse
 from .retrieval import Retriever
@@ -53,9 +54,16 @@ gemini = init_gemini()
 graph = build_graph(retriever, gemini)
 
 # ---------- Endpoints ----------
-@app.get("/healthz", tags=["health"])
+
+@app.get("/", include_in_schema=False)
+def root():
+    # Si prefieres ver la documentación directamente:
+    # return RedirectResponse("/docs")
+    return {"service": "ai-agent", "status": "ok", "docs": "/docs"}
+
+@app.get("/healthz", include_in_schema=False)
 def healthz():
-    return {"status": "ok"}
+    return JSONResponse({"ok": True})
 
 @app.post("/api/ask", response_model=AskResponse, tags=["rag"])
 def ask(payload: AskRequest):
