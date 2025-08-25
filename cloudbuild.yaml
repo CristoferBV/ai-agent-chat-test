@@ -1,20 +1,12 @@
-substitutions:
-  _REGION: us-central1
-  _REPO: containers
-  _IMAGE: ai-agent
-
 steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
       - '-t'
-      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:$SHORT_SHA'
-      - '-t'
-      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:latest'
+      - 'us-central1-docker.pkg.dev/$PROJECT_ID/containers/ai-agent:latest'
       - '-f'
       - 'backend/Dockerfile'
       - '.'
 
 images:
-  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:$SHORT_SHA'
-  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:latest'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/containers/ai-agent:latest'
