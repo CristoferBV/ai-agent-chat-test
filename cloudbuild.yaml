@@ -1,14 +1,8 @@
 steps:
   - name: 'gcr.io/cloud-builders/docker'
-    args:
-      [
-        'build',
-        '-t',
-        'us-central1-docker.pkg.dev/$PROJECT_ID/containers/ai-agent:v1',
-        '-f',
-        'backend/Dockerfile',
-        '.'
-      ]
-
+    args: ['build',
+           '-t','us-central1-docker.pkg.dev/$PROJECT_ID/containers/ai-agent:v1',
+           '-f','backend/Dockerfile',
+           '.']
 images:
   - 'us-central1-docker.pkg.dev/$PROJECT_ID/containers/ai-agent:v1'

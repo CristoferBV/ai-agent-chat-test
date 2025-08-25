@@ -33,6 +33,7 @@ RUN python - <<'PY'
 from sentence_transformers import SentenceTransformer
 SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')
 PY
+
 # =====================================================
 
 # Port (Cloud Run uses $PORT; default 8080 is fine)
