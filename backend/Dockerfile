@@ -1,41 +1,41 @@
+# backend/Dockerfile
 FROM python:3.11-slim
 
 ENV PIP_NO_CACHE_DIR=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
-
-# Avoid encoding problems
-ENV LANG=C.UTF-8 \
+    PYTHONUNBUFFERED=1 \
+    LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     PYTHONUTF8=1
 
 WORKDIR /app
 
-# System dependencies for some libs
+# ---- System deps (faiss, sentence-transformers y build wheels) ----
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential git curl && \
-    rm -rf /var/lib/apt/lists/*
+    build-essential git curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install Python deps
+# ---- Primero requirements para aprovechar cache ----
 COPY backend/requirements.txt /app/requirements.txt
-RUN pip install -r /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# Copy the code
+# ---- Copia del código ----
 COPY backend /app
 
-# ==== Warm-up cache (avoid downloads at runtime) ====
-# 1) Location of the HF/transformers cache inside the image
+# ---- Cache de modelos dentro de la imagen (opcional) ----
 ENV TRANSFORMERS_CACHE=/app/.cache/huggingface \
     HF_HOME=/app/.cache/huggingface
 
-# 2) Download the sentence-transformers model during the build (sin heredoc)
+# Pre-descargar el modelo para evitar downloads en cold start (puedes quitarlo si prefieres)
 RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')"
-# =====================================================
 
-
-# Port (Cloud Run uses $PORT; default 8080 is fine)
+# ---- Cloud Run usa $PORT ----
 ENV PORT=8080
 EXPOSE 8080
 
-# Starting FastAPI
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+# ---- Usuario no-root (recomendado) ----
+RUN useradd -m appuser && chown -R appuser:appuser /app
+USER appuser
+
+# ---- Arranque respetando $PORT ----
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}"]

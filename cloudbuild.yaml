@@ -1,8 +1,21 @@
+# cloudbuild.yaml (root)
+substitutions:
+  _REGION: us-central1
+  _REPO: containers
+  _IMAGE: ai-agent
+
 steps:
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build',
-           '-t','us-central1-docker.pkg.dev/$PROJECT_ID/containers/ai-agent:v1',
-           '-f','backend/Dockerfile',
-           '.']
+    args:
+      - 'build'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:$SHORT_SHA'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:latest'
+      - '-f'
+      - 'backend/Dockerfile'
+      - '.'
+
 images:
-  - 'us-central1-docker.pkg.dev/$PROJECT_ID/containers/ai-agent:v1'
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:$SHORT_SHA'
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:latest'

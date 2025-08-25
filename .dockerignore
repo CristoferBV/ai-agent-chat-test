@@ -1,0 +1,25 @@
+# .dockerignore (root)
+.git
+.gitignore
+**/__pycache__/
+**/*.py[cod]
+*.log
+*.DS_Store
+
+# No empaquetar .env ni secretos
+.env
+**/.env
+
+# Caches
+.cache/
+**/.cache/
+.appcache/
+
+# Node
+node_modules/
+
+# Datos pesados locales (ajusta rutas reales)
+backend/app/data/sources/*
+backend/app/data/vectorstore/*
+backend/app/data/vectorstore\ faiss/*
+backend/app/data/vectorstore/faiss/*
