@@ -24,13 +24,12 @@ for p in [
         load_dotenv(p, override=False)
 
 # ---------- Logging / Warnings ----------
-logging.getLogger("gen").setLevel(logging.WARNING)  # nuestro logger de generation.py
+logging.getLogger("gen").setLevel(logging.WARNING)
 logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
 logging.getLogger("faiss").setLevel(logging.WARNING)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
-logging.getLogger("uvicorn.access").setLevel(logging.WARNING)  # quita líneas de access log
+logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
 
-# Mute deprecations from LangChain and similar
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 # ---------- FastAPI ----------
@@ -57,8 +56,6 @@ graph = build_graph(retriever, gemini)
 
 @app.get("/", include_in_schema=False)
 def root():
-    # Si prefieres ver la documentación directamente:
-    # return RedirectResponse("/docs")
     return {"service": "ai-agent", "status": "ok", "docs": "/docs"}
 
 @app.get("/healthz", include_in_schema=False)

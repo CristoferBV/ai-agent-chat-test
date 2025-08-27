@@ -50,7 +50,7 @@ def load_docs() -> list[Document]:
         text = fetch_clean(url)
         if text:
             docs.append(Document(page_content=text, metadata={"source": url}))
-    # Local (copied public LinkedIn)
+    # Local
     for md in LOCAL_MARKDOWNS:
         if md.exists():
             txt = md.read_text(encoding="utf-8").strip()
@@ -69,7 +69,7 @@ def chunk_docs(docs: list[Document], chunk_size=800, chunk_overlap=120):
     return out
 
 def build_faiss(docs: list[Document]) -> None:
-    # MULTILINGUAL (same as in retrieval.py) embedding
+    # MULTILINGUAL embedding
     embed = HuggingFaceEmbeddings(
         model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     )
