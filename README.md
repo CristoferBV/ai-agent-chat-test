@@ -3,7 +3,7 @@
 Este repositorio implementa un **agente de preguntas y respuestas (RAG)** para consultar conocimiento propio (archivos `.md`) usando *embeddings* y un *vector store* local (**FAISS**). La API está construida con **FastAPI**, orquestada con **LangGraph/LangChain**, y utiliza **Gemini** como modelo generativo. El servicio se empaqueta con **Docker**, se construye con **Cloud Build** y se despliega sin servidores en **Cloud Run**.
 
 > Estado actual: probado localmente y desplegado en Cloud Run con éxito.  
-> URL de ejemplo (la tuya será distinta): `https://<service-id>-<region>.run.app/`
+> URL de ejemplo (la tuya será distinta): `https://ai-agent-1056962430201.us-central1.run.app/`
 
 ---
 
@@ -63,14 +63,14 @@ Este repositorio implementa un **agente de preguntas y respuestas (RAG)** para c
 ```
 backend/
 ├─ app/
-│  ├─ generation.py      # Inicializa Gemini (cliente)
+│  ├─ generation.py      # Inicializa Gemini
 │  ├─ graph.py           # Construye el grafo LangGraph (RAG pipeline)
-│  ├─ main.py            # FastAPI: rutas /, /api/ask (y opcional salud)
+│  ├─ main.py            # FastAPI: rutas /, /api/ask
 │  ├─ retrieval.py       # Carga FAISS y ejecuta búsquedas de vectores
 │  └─ schemas.py         # Esquemas Pydantic: AskRequest/AskResponse
 │
 ├─ data/
-│  ├─ sources/           # Tu conocimiento fuente (.md)
+│  ├─ sources/           # Tu conocimiento fuente (.md y links)
 │  │  ├─ facts.md
 │  │  └─ linkedin.md
 │  └─ vectorstore/faiss/ # Índice FAISS generado
@@ -183,7 +183,7 @@ gcloud artifacts repositories create containers \
   --description="Repo de imágenes"
 ```
 
-### 2) Build con Cloud Build
+### 2) Build con Cloud Build (Crea el archivo 'cloudbuild.yaml' en la raiz del repositorio)
 
 El `cloudbuild.yaml` simple etiqueta la imagen como `:latest`:
 
@@ -227,7 +227,6 @@ gcloud run deploy ai-agent \
 
 - Raíz: `GET /` → `{"service":"ai-agent","status":"ok","docs":"/docs"}`
 - Documentación: `GET /docs`
-- (Opcional) ruta de salud alternativa: `GET /health` o `GET /ping`
 
 Logs en vivo:
 ```bash
@@ -259,28 +258,6 @@ gcloud run services logs tail ai-agent --region us-central1
   UI interactiva de Swagger.
 
 > Los modelos de entrada/salida se definen en `backend/app/schemas.py` (Pydantic).
-
----
-
-## Solución de problemas
-
-**1) 404 HTML de Google (robotito) en `/healthz`**  
-La petición no llegó al contenedor (la sirve el proxy). Usa rutas como `/ping`, `/health` o `/_ah/health` para checks.
-
-**2) Permisos de Artifact Registry**  
-Si Cloud Run no puede leer la imagen:  
-Asigna `roles/artifactregistry.reader` a la service account que ejecuta Cloud Run.
-
-**3) Imagen grande o build lento**  
-Confirma que `.dockerignore` ignore `data/vectorstore/*`, caches (`__pycache__`, `.cache/`).  
-En el Dockerfile se **precarga** el modelo de `sentence-transformers` para evitar descargas en cold start (opcional).
-
-**4) OOM / tiempo de arranque**  
-Aumenta memoria: `--memory 4Gi`.  
-Para reducir cold start: `gcloud run services update ai-agent --min-instances 1`.
-
-**5) Tag vacío en Cloud Build**  
-Si usas `$SHORT_SHA` sin triggers, puede quedar vacío. Usa el `cloudbuild.yaml` “simple” con `:latest` o pasa tu propio `--substitutions=_TAG=...`.
 
 ---
 
